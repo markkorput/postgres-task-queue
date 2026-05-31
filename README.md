@@ -1,6 +1,6 @@
-# postgres-task-queue: PostgreSQL Task Queue
+# PostgreSQL Task Queue (PGTQ)
 
-A PostgreSQL-based distributed task queue system built on [pgmq](https://github.com/pgmq/pgmq). postgres-task-queue provides a high-level Python API for defining tasks, processing messages with worker concurrency, handling dead-letter queues, and automatically pruning archived messages.
+A basic task queue implementation built on top of [pgmq](https://github.com/pgmq/pgmq) (postgres message queue). PGTQ provides a high-level Python API for defining tasks, processing messages with worker concurrency, handling dead-letter queues, and automatically pruning archived messages.
 
 ## Installation
 
@@ -10,15 +10,36 @@ pip install postgres-task-queue
 
 ## Usage
 
+### Prerequisites
+
+PGTW uses a [slightly modified](#pgtq--pgmq) version of the [pgmq](https://github.com/pgmq/pgmq) extension that needs to be installed (once) on your postgres database.
+
+This can be done by simply executing the embedded [pgmq.sql](./pgmq.sql) file.
+
+
+### Create pgmq DB tables for each of your queues
+
+The `create_queue` method (see below) will ONLY create a python `Queue` instance to interact with the task queue. It will NOT create the DB tables.
+
+PGTQ does not provide methods to create these tables, as these are entirely pgmq tables, so to create the tables for a task queue called `actions` you can simply create a pgmq queue called `actions` and a pgmq queue called `actions_dlq` (unless dlq is disabled with `dlq=False`):
+
+```sql
+SELECT pgmq.create('actions')
+SELECT pgmq.create('actions_dlq')
+```
+
+See [the alembic migration in the demo](./demo/src/postgres_task_queue_demo/alembic/versions/2026-05-26_create_queue_71d96b52b5ed.py) for another example.
+
+
 ### Setup (database connection)
 
-Before using the task queue, configure your (asyncpg) database connection using the `setup` method:
+Before using the task queue, provide a database connection using the `setup` method:
 
 Option 1: Provide an asyncpg connection factory
 
 ```python
 import asyncpg
-from postgres_task_queue import setup
+import postgres_task_queue
 
 async def get_connection():
     conn = await asyncpg.connect("postgresql://user:password@localhost:5432/dbname")
@@ -27,23 +48,23 @@ async def get_connection():
     finally:
         await conn.close()
 
-setup(connection=get_connection)
+postgres_task_queue.setup(connection=get_connection)
 ```
 
 Option 2: Provide a pre-configured PGMQ instance
 
 ```python
 from pgmq import AsyncPGMQueue
+import postgres_task_queue
 
 pgmq = AsyncPGMQueue(connection_string="postgresql://user:password@localhost:5432/dbname")
 await pgmq.init()
 
-setup(pgmq=pgmq)
+postgres_task_queue.setup(pgmq=pgmq)
 ```
 
-### Complete Example: Single Queue with input validation
 
-#### Create the queue (`queue.py`)
+### Create the queue intance (`queue.py`)
 
 ```python
 from pydantic import BaseModel
@@ -55,6 +76,8 @@ class UserAction(BaseModel):
 
 user_actions_queue = create_queue("user_actions", input_model=UserAction)
 ```
+
+Note that the first argument to the `create_queue` should correspond with the name of the created (see above) pgmq DB queue.
 
 
 #### Schedule tasks
@@ -68,7 +91,7 @@ async def some_api_endpoint_or_cli_function():
 ```
 
 
-#### Create a queue processor (`processor.py`)
+### Create a queue processor (`processor.py`)
 
 ```python
 from postgres_task_queue.processor import processor
@@ -80,7 +103,7 @@ async def user_actions_processor(user_action: UserAction) -> None:
 ```
 
 
-#### Run a worker
+### Run a worker
 
 ```python
 from postgres_task_queue.worker import Worker
@@ -160,7 +183,7 @@ async def run_worker():
 
 ### CLI Worker Options
 
-You can also run workers directly from the command line:
+You can also run workers directly from the command line (note that this will cause PGMQ to look for DB details in [environment variables](https://pgmq.github.io/pgmq-py/latest/getting_started/#environment-variables)):
 
 ```bash
 # Run worker scanning a module for Processor instances
@@ -180,5 +203,18 @@ uv run python -m postgres_task_queue.worker myapp.processors \
     --exclude legacy_tasks
 ```
 
-Note that this method will cause PGMQ to look for DB details in [environment variables](https://pgmq.github.io/pgmq-py/latest/getting_started/#environment-variables).
+
+## PGTQ & PGMQ
+
+PGTQ is built on top of the [pgmq](https://github.com/pgmq/pgmq) PostgreSQL extension, using it as the underlying message queue infrastructure. For each task queue defined in PGTQ, the library creates **two pgmq queues**: one for the actual task queue and one for the Dead Letter Queue (DLQ), unless DLQ is explicitly disabled for that particular task queue with `dlq=False`.
+
+PGTQ extends pgmq's functionality by adding **LIFO (Last-In-First-Out) ordered execution** support. This requires some minor modifications to the pgmq extension, where a couple of read methods received an additional _optional_ `direction` argument that provides reading options for LIFO vs FIFO ordering.
+
+Additionally, PGTQ enhances message tracking by adding several custom headers to pgmq messages, all prefixed with `x-pgtq-`. These headers are used to:
+- Track task status throughout processing
+- Create references between failed messages and their corresponding DLQ messages
+- Create references between DLQ messages and rescheduled messages
+- Create references between retry messages and the original failed messages
+
+These enhancements allow PGTQ to provide a rich task queue experience on top of pgmq's core message queue capabilities while maintaining full compatibility with the underlying extension.
 
