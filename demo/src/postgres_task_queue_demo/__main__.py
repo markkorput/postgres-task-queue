@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 typer = async_typer.AsyncTyper()
 
 
-@typer.async_command()
+@typer.command()
 async def schedule(delay: float | None = None) -> None:
     if delay is None:
         delay = random.random()
@@ -29,7 +29,7 @@ async def schedule(delay: float | None = None) -> None:
     )
 
 
-@typer.async_command()
+@typer.command()
 async def reschedule(dlq_id: int) -> None:
     from .timers import queue
 
@@ -37,7 +37,7 @@ async def reschedule(dlq_id: int) -> None:
     await queue.timers_queue.reschedule(dlq_id)
 
 
-@typer.async_command()
+@typer.command()
 async def worker():
     from postgres_task_queue.worker import Worker
     from .timers.processor import timers_processor
@@ -48,7 +48,7 @@ async def worker():
     await worker.run()
 
 
-@typer.async_command()
+@typer.command()
 async def api(
     host: Annotated[str, async_typer.Option(help="Host to bind to")] = "0.0.0.0",
     port: Annotated[int, async_typer.Option(help="Port to listen on")] = 8000,

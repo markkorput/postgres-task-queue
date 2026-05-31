@@ -408,8 +408,8 @@ async = [
 
 [[package]]
 name = "postgres-task-queue"
-version = "0.0.0"
-source = { editable = "../" }
+version = "0.1.1"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "async-typer" },
     { name = "asyncpg" },
@@ -419,26 +419,9 @@ dependencies = [
     { name = "pydantic" },
     { name = "typer" },
 ]
-
-[package.metadata]
-requires-dist = [
-    { name = "async-typer", specifier = "==0.2.1" },
-    { name = "asyncpg", specifier = ">=0.31.0" },
-    { name = "dependency-injector", specifier = ">=4.49.0" },
-    { name = "fastapi", specifier = ">=0.136.1" },
-    { name = "pgmq", extras = ["async"], specifier = "==1.1.1" },
-    { name = "pydantic", specifier = ">=2.13.3" },
-    { name = "typer", specifier = "==0.24.2" },
-]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "httpx2", specifier = ">=2.2.0" },
-    { name = "pytest", specifier = ">=9.0.2" },
-    { name = "pytest-asyncio", specifier = ">=1.3.0" },
-    { name = "pytest-dotenv", specifier = ">=0.5.2" },
-    { name = "ruff", specifier = ">=0.15.6" },
-    { name = "ty", specifier = ">=0.0.32" },
+sdist = { url = "https://files.pythonhosted.org/packages/80/90/1f437018d4ed1d5ffb441732b942f451b9f9785069bcf142528b55220c90/postgres_task_queue-0.1.1.tar.gz", hash = "sha256:0a93bceb444040351e999e48986557983b70cc5c4f97f54d33cd61cf39d3ceb6", size = 61945, upload-time = "2026-05-31T20:23:25.002Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/1e/80/92c72095d0b068258d4e3f4ae57972b7889820a45053385d1bd175a04c79/postgres_task_queue-0.1.1-py3-none-any.whl", hash = "sha256:9f176680441422bf0ccdcd2fae6a73c2fda12b33790acad95761b5900e0b185d", size = 24550, upload-time = "2026-05-31T20:23:23.494Z" },
 ]
 
 [[package]]
@@ -469,7 +452,7 @@ requires-dist = [
     { name = "async-typer", specifier = "==0.2.1" },
     { name = "asyncpg", specifier = "==0.31.0" },
     { name = "fastapi", specifier = "==0.136.1" },
-    { name = "postgres-task-queue", editable = "../" },
+    { name = "postgres-task-queue", specifier = "==0.1.1" },
     { name = "psycopg2", specifier = "==2.9.12" },
     { name = "pydantic", specifier = "==2.13.3" },
     { name = "sqlalchemy", extras = ["asyncio"], specifier = "==2.0.35" },
