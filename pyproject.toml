@@ -1,6 +1,6 @@
 [project]
 name = "postgres-task-queue"
-version = "0.1.0"
+version = "0.1.1"
 description = "Basic task queue implementation built on top of pgmq."
 readme = "README.md"
 license="MIT"
@@ -26,6 +26,26 @@ classifiers = [
     "Framework :: AsyncIO",
 ]
 
+dependencies = [
+    "async-typer==0.2.1",
+    "asyncpg>=0.31.0",
+    "dependency-injector>=4.49.0",
+    "fastapi>=0.136.1",
+    "pgmq[async]==1.1.1",
+    "pydantic>=2.13.3",
+    "typer==0.24.2",
+]
+
+[dependency-groups]
+dev = [
+    "httpx2>=2.2.0",
+    "pytest>=9.0.2",
+    "pytest-asyncio>=1.3.0",
+    "pytest-dotenv>=0.5.2",
+    "ruff>=0.15.6",
+    "ty>=0.0.32",
+]
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
@@ -45,26 +65,6 @@ exclude = [
     "/.pytest_cache",
     "/.ruff_cache",
     "/.gitignore",
-]
-
-dependencies = [
-    "async-typer==0.2.1",
-    "asyncpg>=0.31.0",
-    "dependency-injector>=4.49.0",
-    "fastapi>=0.136.1",
-    "pgmq[async]==1.1.1",
-    "pydantic>=2.13.3",
-    "typer==0.24.2",
-]
-
-[dependency-groups]
-dev = [
-    "httpx2>=2.2.0",
-    "pytest>=9.0.2",
-    "pytest-asyncio>=1.3.0",
-    "pytest-dotenv>=0.5.2",
-    "ruff>=0.15.6",
-    "ty>=0.0.32",
 ]
 
 [tool.pytest]
