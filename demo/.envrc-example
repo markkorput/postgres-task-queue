@@ -1,0 +1,2 @@
+# Use direnv to automatically apply these env vars to your development shell
+export PGTQ_DEMO_DATABASE_URL="postgresql://postgres:postgres@localhost:5432/pgtq_demo"

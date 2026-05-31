@@ -31,7 +31,9 @@ dev = [
     "ty>=0.0.32",
 ]
 
-
 [tool.pytest]
 minversion = "9.0"
 env_files = [".env.test"]
+
+[tool.ty.src]
+exclude = ["demo"]
