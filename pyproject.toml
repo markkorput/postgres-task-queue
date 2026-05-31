@@ -3,10 +3,19 @@ name = "postgres-task-queue"
 version = "0.0.0"
 description = "Basic task queue implementation built on top of pgmq."
 readme = "README.md"
+license="MIT"
 authors = [
     { name = "Mark vd Korput", email = "mark.korput@proton.me" }
 ]
+homepage = "https://github.com/markkorput/postgres-task-queue"
+repository = "https://github.com/markkorput/postgres-task-queue"
+
 requires-python = ">=3.12"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 dependencies = [
     "async-typer==0.2.1",
     "asyncpg>=0.31.0",
@@ -16,10 +25,6 @@ dependencies = [
     "pydantic>=2.13.3",
     "typer==0.24.2",
 ]
-
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
 
 [dependency-groups]
 dev = [
