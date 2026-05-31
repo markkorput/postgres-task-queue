@@ -9,12 +9,43 @@ authors = [
 ]
 homepage = "https://github.com/markkorput/postgres-task-queue"
 repository = "https://github.com/markkorput/postgres-task-queue"
+keywords = ["postgres", "postgresql", "task-queue", "pgmq", "async", "queue"]
 
 requires-python = ">=3.12"
+
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Database",
+    "Framework :: AsyncIO",
+]
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/postgres_task_queue"]
+
+[tool.hatch.build.targets.sdist]
+exclude = [
+    "/demo",
+    "/docker-entrypoint-initdb.d",
+    "/docker-compose.yaml",
+    "/makefile",
+    "/tests",
+    "/.env.test",
+    "/.venv",
+    "/.pytest_cache",
+    "/.ruff_cache",
+    "/.gitignore",
+]
 
 dependencies = [
     "async-typer==0.2.1",
