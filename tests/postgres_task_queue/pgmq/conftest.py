@@ -2,12 +2,11 @@ import os
 from contextlib import asynccontextmanager
 
 import asyncpg
-from dependency_injector import providers
 import pytest
 import pytest_asyncio
 
 from postgres_task_queue.pgmq.broker import PgmqBroker, Dlq, Archive
-from postgres_task_queue.pgmq.container import Container, wire
+from postgres_task_queue.pgmq.container import Container, setup
 
 
 TEST_QUEUE_NAME = "test_queue"
@@ -60,12 +59,8 @@ async def db_conn():
 
 @pytest.fixture(autouse=True)
 def container():
-    c = Container()
-    wire(c)
-
-    # use the _db_conn method, NOT the db_conn fixture, so the connection is lazy-loaded
-    with c.conn.override(providers.Resource(_db_conn)):
-        yield c
+    container = setup(_db_conn)
+    return container
 
 
 @pytest.fixture

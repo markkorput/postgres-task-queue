@@ -20,8 +20,6 @@ def processor(
     idempotency_key: str | None = ...,
     lifo: bool = ...,
     grouped: bool = ...,
-    poll_interval_ms: int = ...,
-    max_poll_seconds: int = ...,
 ) -> Callable[
     [Callable[[InputType], Awaitable[Any]]], PydanticProcessor[InputType]
 ]: ...

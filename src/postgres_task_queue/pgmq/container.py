@@ -7,10 +7,11 @@ from dependency_injector import containers, providers
 from pgmq import AsyncPGMQueue
 
 
-async def _create_pgmq() -> AsyncPGMQueue:
+async def _create_pgmq(init: bool = True) -> AsyncPGMQueue:
     queue = AsyncPGMQueue()
     queue.config.init_extension = False
-    await queue.init()
+    if init:
+        await queue.init()
     return queue
 
 
@@ -26,15 +27,19 @@ class Container(containers.DeclarativeContainer):
     conn = providers.Resource(_conn, pgmq=pgmq)
 
 
-def wire(container: Container) -> None:
+def wire(container: Container | None = None) -> Container:
+    if not container:
+        container = Container()
+
     """Wires the given container on the entire postgres_task_queue package and its sub-modules"""
     container.wire(modules=["postgres_task_queue.pgmq.broker"])
+    return container
 
 
 def setup(
     connection: Callable[[], AsyncContextManager[Connection]] | None = None,
     pgmq: AsyncPGMQueue | None = None,
-) -> None:
+) -> Container:
     """
     Set up and configure the PGMQ container for postgres_task_queue.
 
@@ -66,6 +71,11 @@ def setup(
     """
     container = Container()
 
+    if connection is not None:
+        # Override the conn provider with the user's factory
+        container.conn = providers.Resource(connection)
+        container.pgmq = providers.Singleton(lambda: _create_pgmq(init=False))
+
     if pgmq is not None:
         # Use the provided PGMQ instance
         async def coro():
@@ -73,8 +83,4 @@ def setup(
 
         container.pgmq = providers.Singleton(coro)
 
-    if connection is not None:
-        # Override the conn provider with the user's factory
-        container.conn = providers.Resource(connection)
-
-    wire(container)
+    return wire(container)
