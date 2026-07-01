@@ -117,6 +117,22 @@ async def run_worker():
 ```
 
 
+### Queue options
+
+Use the `create_queue`` method's `group` option to provide a callable that generates grouping keys based on the queue item's payload.
+
+```python
+from pydantic import BaseModel
+from postgres_task_queue import create_queue
+
+class UserAction(BaseModel):
+    user_id: int
+    action: str
+
+user_actions_queue = create_queue("user_actions", input_model=UserAction, group=lambda user_action: user_action.action)
+```
+
+
 ### Enqueuing Options
 
 ```python
@@ -187,10 +203,10 @@ You can also run workers directly from the command line (note that this will cau
 
 ```bash
 # Run worker scanning a module for Processor instances
-uv run python -m postgres_task_queue.worker myapp.processors
+uv run python -m postgres_task_queue myapp.processors
 
 # With options
-uv run python -m postgres_task_queue.worker myapp.processors \
+uv run python -m postgres_task_queue myapp.processors \
     --concurrency-limit 10 \
     --poll-interval-seconds 0.5 \
     --poll-exception-interval-seconds 3.0 \
@@ -198,7 +214,7 @@ uv run python -m postgres_task_queue.worker myapp.processors \
     --prune-batch-size 500
 
 # Filter specific processors
-uv run python -m postgres_task_queue.worker myapp.processors \
+uv run python -m postgres_task_queue myapp.processors \
     --include user_actions \
     --exclude legacy_tasks
 ```
