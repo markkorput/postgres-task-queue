@@ -1,5 +1,6 @@
 import pytest
 from datetime import timedelta
+from typing import Any
 from unittest.mock import AsyncMock
 from pydantic import BaseModel
 
@@ -82,4 +83,116 @@ class TestPydanticQueue:
         await queue.enqueue(model_instance)
         queue.broker.enqueue.assert_called_once_with(  # ty: ignore
             {"name": "hello", "count": 42}, group=None
+        )
+
+
+class TestQueueGroupFunction:
+    """Tests for Queue group function functionality."""
+
+    @pytest.mark.asyncio
+    async def test_queue_enqueue_with_group_function(self):
+        """Test that Queue uses group function when no group is provided."""
+        mock_broker = AsyncMock()
+
+        def get_group(data: dict[str, Any]) -> str | None:
+            return data.get("category")
+
+        queue = Queue(mock_broker, group=get_group)
+        await queue.enqueue({"category": "test", "value": 42})
+        mock_broker.enqueue.assert_called_once_with(
+            {"category": "test", "value": 42}, group="test"
+        )
+
+    @pytest.mark.asyncio
+    async def test_queue_enqueue_group_function_returns_none(self):
+        """Test that Queue handles group function returning None."""
+        mock_broker = AsyncMock()
+
+        def get_group(data: dict[str, Any]) -> str | None:
+            return None
+
+        queue = Queue(mock_broker, group=get_group)
+        await queue.enqueue({"value": 42})
+        mock_broker.enqueue.assert_called_once_with({"value": 42}, group=None)
+
+    @pytest.mark.asyncio
+    async def test_queue_enqueue_explicit_group_overrides_function(self):
+        """Test that explicit group parameter overrides group function."""
+        mock_broker = AsyncMock()
+
+        def get_group(data: dict[str, Any]) -> str | None:
+            return "function_group"
+
+        queue = Queue(mock_broker, group=get_group)
+        await queue.enqueue({"value": 42}, group="explicit_group")
+        mock_broker.enqueue.assert_called_once_with(
+            {"value": 42}, group="explicit_group"
+        )
+
+    @pytest.mark.asyncio
+    async def test_queue_enqueue_no_group_function_no_group_param(self):
+        """Test that Queue without group function and no group param passes None."""
+        mock_broker = AsyncMock()
+        queue = Queue(mock_broker)
+        await queue.enqueue({"value": 42})
+        mock_broker.enqueue.assert_called_once_with({"value": 42}, group=None)
+
+
+class TestPydanticQueueGroupFunction:
+    """Tests for PydanticQueue group function functionality."""
+
+    @pytest.mark.asyncio
+    async def test_pydantic_queue_enqueue_with_group_function(self):
+        """Test that PydanticQueue uses group function when no group is provided."""
+        mock_broker = AsyncMock()
+
+        def get_group(model: SimpleModel) -> str | None:
+            return f"user_{model.name}"
+
+        queue = PydanticQueue(mock_broker, SimpleModel, group=get_group)
+        model_instance = SimpleModel(name="john", count=1)
+        await queue.enqueue(model_instance)
+        mock_broker.enqueue.assert_called_once_with(
+            {"name": "john", "count": 1}, group="user_john"
+        )
+
+    @pytest.mark.asyncio
+    async def test_pydantic_queue_enqueue_group_function_returns_none(self):
+        """Test that PydanticQueue handles group function returning None."""
+        mock_broker = AsyncMock()
+
+        def get_group(model: SimpleModel) -> str | None:
+            return None
+
+        queue = PydanticQueue(mock_broker, SimpleModel, group=get_group)
+        model_instance = SimpleModel(name="john", count=1)
+        await queue.enqueue(model_instance)
+        mock_broker.enqueue.assert_called_once_with(
+            {"name": "john", "count": 1}, group=None
+        )
+
+    @pytest.mark.asyncio
+    async def test_pydantic_queue_enqueue_explicit_group_overrides_function(self):
+        """Test that explicit group parameter overrides group function."""
+        mock_broker = AsyncMock()
+
+        def get_group(model: SimpleModel) -> str | None:
+            return "function_group"
+
+        queue = PydanticQueue(mock_broker, SimpleModel, group=get_group)
+        model_instance = SimpleModel(name="john", count=1)
+        await queue.enqueue(model_instance, group="explicit_group")
+        mock_broker.enqueue.assert_called_once_with(
+            {"name": "john", "count": 1}, group="explicit_group"
+        )
+
+    @pytest.mark.asyncio
+    async def test_pydantic_queue_enqueue_no_group_function_no_group_param(self):
+        """Test that PydanticQueue without group function and no group param passes None."""
+        mock_broker = AsyncMock()
+        queue = PydanticQueue(mock_broker, SimpleModel)
+        model_instance = SimpleModel(name="john", count=1)
+        await queue.enqueue(model_instance)
+        mock_broker.enqueue.assert_called_once_with(
+            {"name": "john", "count": 1}, group=None
         )

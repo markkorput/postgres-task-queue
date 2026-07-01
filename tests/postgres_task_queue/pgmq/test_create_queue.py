@@ -1,4 +1,5 @@
 from datetime import timedelta
+from typing import Any
 
 import pytest
 from unittest.mock import AsyncMock, patch
@@ -177,6 +178,103 @@ class TestCreateQueue:
         assert call_kwargs["archive_table"] is True
         assert call_kwargs["dlq_queue_name"] == "custom_dlq"
         assert call_kwargs["dlq_archive_name"] is True
+
+    @patch("postgres_task_queue.pgmq.queue.PgmqBroker")
+    def test_create_queue_passes_group_to_queue(self, mock_broker_class):
+        """Test that group option is passed to the Queue constructor."""
+        mock_broker = AsyncMock()
+        mock_broker.queue_name = "my_queue"
+        mock_broker.archive = None
+        mock_broker.dlq = None
+        mock_broker_class.return_value = mock_broker
+
+        def get_group(data: dict[str, Any]) -> str | None:
+            return data.get("category")
+
+        queue = create_queue("my_queue", group=get_group)
+
+        assert queue._group_func == get_group
+
+    @patch("postgres_task_queue.pgmq.queue.PgmqBroker")
+    def test_create_queue_passes_group_to_pydantic_queue(self, mock_broker_class):
+        """Test that group option is passed to the PydanticQueue constructor."""
+        mock_broker = AsyncMock()
+        mock_broker.queue_name = "my_queue"
+        mock_broker.archive = None
+        mock_broker.dlq = None
+        mock_broker_class.return_value = mock_broker
+
+        def get_group(model: SampleModel) -> str | None:
+            return f"user_{model.name}"
+
+        queue = create_queue("my_queue", input_model=SampleModel, group=get_group)
+
+        assert queue._group_func == get_group
+
+
+@pytest.mark.asyncio
+class TestCreateQueueGroupFunction:
+    """Tests for create_queue with group function functionality."""
+
+    @patch("postgres_task_queue.pgmq.queue.PgmqBroker")
+    async def test_create_queue_with_group_function(self, mock_broker_class):
+        """Test that create_queue creates Queue with working group function."""
+        mock_broker = AsyncMock()
+        mock_broker.queue_name = "my_queue"
+        mock_broker.archive = None
+        mock_broker.dlq = None
+        mock_broker_class.return_value = mock_broker
+
+        def get_group(data: dict[str, Any]) -> str | None:
+            return data.get("type")
+
+        queue = create_queue("my_queue", group=get_group)
+        await queue.enqueue({"type": "urgent", "task": "process"})
+
+        mock_broker.enqueue.assert_called_once_with(
+            {"type": "urgent", "task": "process"}, group="urgent"
+        )
+
+    @patch("postgres_task_queue.pgmq.queue.PgmqBroker")
+    async def test_create_queue_pydantic_with_group_function(self, mock_broker_class):
+        """Test that create_queue creates PydanticQueue with working group function."""
+        mock_broker = AsyncMock()
+        mock_broker.queue_name = "my_queue"
+        mock_broker.archive = None
+        mock_broker.dlq = None
+        mock_broker_class.return_value = mock_broker
+
+        def get_group(model: SampleModel) -> str | None:
+            return f"priority_{model.value}"
+
+        queue = create_queue("my_queue", input_model=SampleModel, group=get_group)
+        sample = SampleModel(name="test", value=5)
+        await queue.enqueue(sample)
+
+        mock_broker.enqueue.assert_called_once_with(
+            {"name": "test", "value": 5}, group="priority_5"
+        )
+
+    @patch("postgres_task_queue.pgmq.queue.PgmqBroker")
+    async def test_create_queue_group_function_with_explicit_group(
+        self, mock_broker_class
+    ):
+        """Test that explicit group overrides group function in create_queue."""
+        mock_broker = AsyncMock()
+        mock_broker.queue_name = "my_queue"
+        mock_broker.archive = None
+        mock_broker.dlq = None
+        mock_broker_class.return_value = mock_broker
+
+        def get_group(data: dict[str, Any]) -> str | None:
+            return "function_group"
+
+        queue = create_queue("my_queue", group=get_group)
+        await queue.enqueue({"task": "process"}, group="explicit_group")
+
+        mock_broker.enqueue.assert_called_once_with(
+            {"task": "process"}, group="explicit_group"
+        )
 
 
 @pytest.mark.asyncio

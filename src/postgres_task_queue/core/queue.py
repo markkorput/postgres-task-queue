@@ -1,5 +1,5 @@
 from datetime import timedelta
-from typing import Any, Generic, TypeVar, TypedDict
+from typing import Any, Callable, Generic, TypeVar, TypedDict
 
 from pydantic import BaseModel
 
@@ -32,24 +32,26 @@ def _archive_options(opts: ArchiveOptions | bool) -> ArchiveOptions | None:
 class Queue:
     """High-level queue class that manages message enqueuing and rescheduling."""
 
-    _archive_options: ArchiveOptions | None
-    _dlq_archive_options: ArchiveOptions | None
-
     def __init__(
         self,
         broker: Broker,
         *,
         archive: bool | ArchiveOptions = True,
         dlq_archive: bool | ArchiveOptions = True,
+        group: Callable[[dict[str, Any]], str | None] | None = None,
     ) -> None:
         self.broker = broker
         self._archive_options = _archive_options(archive)
         self._dlq_archive_options = _archive_options(dlq_archive)
+        self._group_func = group
 
     async def enqueue(
         self, input_data: dict[str, Any], *, group: str | None = None
     ) -> None:
         """Enqueue a message to this queue."""
+        if group is None and self._group_func:
+            group = self._group_func(input_data)
+
         await self.broker.enqueue(input_data, group=group)
 
     async def reschedule(
@@ -86,6 +88,7 @@ class PydanticQueue(Queue, Generic[InputType]):
     """A Queue that accepts a Pydantic BaseModel as input."""
 
     input_model: type[InputType]
+    _group_func: Callable[[InputType], str | None] | None
 
     def __init__(
         self,
@@ -94,13 +97,18 @@ class PydanticQueue(Queue, Generic[InputType]):
         *,
         archive: bool | ArchiveOptions = True,
         dlq_archive: bool | ArchiveOptions = True,
+        group: Callable[[InputType], str | None] | None = None,
     ) -> None:
         super().__init__(broker, archive=archive, dlq_archive=dlq_archive)
         self.input_model = input_model
+        self._group_func = group
 
     async def enqueue(self, input_data: InputType, *, group: str | None = None) -> None:  # ty: ignore
         """Enqueue a message to this queue.
 
         The input_data is serialized to a dict using model_dump() first.
         """
+        if group is None and self._group_func:
+            group = self._group_func(input_data)
+
         await super().enqueue(input_data.model_dump(), group=group)

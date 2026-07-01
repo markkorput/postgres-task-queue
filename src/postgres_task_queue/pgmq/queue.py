@@ -1,4 +1,4 @@
-from typing import TypeVar, overload
+from typing import Any, Callable, TypeVar, overload
 
 from pydantic import BaseModel
 
@@ -16,6 +16,7 @@ def create_queue(
     archive: bool | ArchiveOptions = ...,
     dlq: str | bool = ...,
     dlq_archive: bool | ArchiveOptions = ...,
+    group: Callable[[dict[str, Any]], str | None] | None = ...,
 ) -> Queue: ...
 
 
@@ -27,6 +28,7 @@ def create_queue(
     archive: bool | ArchiveOptions = ...,
     dlq: str | bool = ...,
     dlq_archive: bool | ArchiveOptions = ...,
+    group: Callable[[InputType], str | None] | None = ...,
 ) -> PydanticQueue[InputType]: ...
 
 
@@ -37,6 +39,7 @@ def create_queue(
     archive: bool | ArchiveOptions = True,
     dlq: str | bool = True,
     dlq_archive: bool | ArchiveOptions = True,
+    group: Callable[[Any], str | None] | None = None,
 ) -> Queue | PydanticQueue[InputType]:
     """Create a Queue or PydanticQueue instance with a PgmqBroker.
 
@@ -46,6 +49,9 @@ def create_queue(
         archive: Archive options for the main queue (bool or ArchiveOptions dict).
         dlq: DLQ queue name (str) or whether to create a DLQ (bool). Defaults to True.
         dlq_archive: Archive options for the DLQ (bool or ArchiveOptions dict).
+        group: Optional callable that takes the enqueue input and returns a group string.
+               For Queue: Callable[[dict[str, Any]], str | None] | None
+               For PydanticQueue: Callable[[InputType], str | None] | None
 
     Returns:
         A Queue instance if input_model is None, otherwise a PydanticQueue instance.
@@ -58,8 +64,8 @@ def create_queue(
     )
 
     if input_model is None:
-        return Queue(broker, archive=archive, dlq_archive=dlq_archive)
+        return Queue(broker, archive=archive, dlq_archive=dlq_archive, group=group)
     else:
         return PydanticQueue(
-            broker, input_model, archive=archive, dlq_archive=dlq_archive
+            broker, input_model, archive=archive, dlq_archive=dlq_archive, group=group
         )
