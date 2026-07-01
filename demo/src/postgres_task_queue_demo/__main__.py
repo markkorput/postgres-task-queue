@@ -39,7 +39,7 @@ async def reschedule(dlq_id: int) -> None:
 
 @typer.command()
 async def worker():
-    from postgres_task_queue.worker import Worker
+    from postgres_task_queue.core.worker import Worker
     from .timers.processor import timers_processor
 
     worker = Worker({timers_processor})

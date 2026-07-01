@@ -1,10 +1,10 @@
 from unittest.mock import AsyncMock
 
 import pytest
-from postgres_task_queue._broker import Broker, Task
-from postgres_task_queue._processor import Processor
-from postgres_task_queue._queue import Queue
-from postgres_task_queue.worker import ProcessorWorker, Worker
+from postgres_task_queue.core.broker import Broker, Task
+from postgres_task_queue.core.processor import Processor
+from postgres_task_queue.core.queue import Queue
+from postgres_task_queue.core.worker import ProcessorWorker, Worker
 
 
 @pytest.fixture

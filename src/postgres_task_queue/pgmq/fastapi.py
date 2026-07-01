@@ -4,7 +4,7 @@ from fastapi import APIRouter, HTTPException, Depends, Query, status
 
 from pydantic import BaseModel
 
-from postgres_task_queue._queue import Queue, ArchiveOptions
+from postgres_task_queue.core.queue import Queue, ArchiveOptions
 from .broker import Archive, Dlq, PgmqBroker, _Table
 
 

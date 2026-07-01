@@ -13,7 +13,7 @@ from pgmq.messages import Message
 from pgmq.decorators import async_transaction
 from pgmq.logger import log_with_context
 
-from postgres_task_queue._broker import Task
+from postgres_task_queue.core.broker import Task
 from postgres_task_queue.pgmq.container import Container
 from postgres_task_queue.pgmq.metadata import Header, MessageStatus
 from postgres_task_queue.pgmq.models import DlqBody

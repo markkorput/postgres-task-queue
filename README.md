@@ -106,7 +106,7 @@ async def user_actions_processor(user_action: UserAction) -> None:
 ### Run a worker
 
 ```python
-from postgres_task_queue.worker import Worker
+from postgres_task_queue.core.worker import Worker
 from .processor import user_actions_processor
 
 async def run_worker():
@@ -166,7 +166,7 @@ async def processor_func(task: Task) -> None:
 ### Worker Options
 
 ```python
-from postgres_task_queue.worker import Worker
+from postgres_task_queue.core.worker import Worker
 from .processor import user_actions_processor
 
 async def run_worker():

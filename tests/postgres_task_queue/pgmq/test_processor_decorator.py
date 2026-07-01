@@ -4,12 +4,12 @@ from unittest.mock import AsyncMock
 
 from pydantic import BaseModel, ValidationError
 
-from postgres_task_queue._processor import Processor, PydanticProcessor
+from postgres_task_queue.core.processor import Processor, PydanticProcessor
 from postgres_task_queue.pgmq.processor import processor
-from postgres_task_queue._queue import PydanticQueue
+from postgres_task_queue.core.queue import PydanticQueue
 
 if TYPE_CHECKING:
-    from postgres_task_queue._broker import Broker
+    from postgres_task_queue.core.broker import Broker
 
 
 class SimpleModel(BaseModel):

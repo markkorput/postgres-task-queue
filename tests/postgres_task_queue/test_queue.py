@@ -3,8 +3,8 @@ from datetime import timedelta
 from unittest.mock import AsyncMock
 from pydantic import BaseModel
 
-from postgres_task_queue._broker import Broker
-from postgres_task_queue._queue import Queue, PydanticQueue, ArchiveOptions
+from postgres_task_queue.core.broker import Broker
+from postgres_task_queue.core.queue import Queue, PydanticQueue, ArchiveOptions
 
 
 class SimpleModel(BaseModel):

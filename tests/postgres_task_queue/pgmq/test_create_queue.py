@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, patch
 from pydantic import BaseModel
 
 from postgres_task_queue.pgmq.queue import create_queue
-from postgres_task_queue._queue import ArchiveOptions, PydanticQueue, Queue
+from postgres_task_queue.core.queue import ArchiveOptions, PydanticQueue, Queue
 
 
 class SampleModel(BaseModel):

@@ -2,8 +2,8 @@ from typing import Any, Callable, TypeVar, Awaitable, overload
 
 from pydantic import BaseModel
 
-from postgres_task_queue._processor import Processor, PydanticProcessor
-from postgres_task_queue._queue import Queue, PydanticQueue
+from postgres_task_queue.core.processor import Processor, PydanticProcessor
+from postgres_task_queue.core.queue import Queue, PydanticQueue
 
 InputType = TypeVar("InputType", bound=BaseModel)
 

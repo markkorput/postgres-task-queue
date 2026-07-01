@@ -8,8 +8,12 @@ import pytest
 import pytest_asyncio
 from fastapi.testclient import TestClient
 
-from postgres_task_queue._broker import Broker
-from postgres_task_queue._queue import ArchiveOptions, Queue, DEFAULT_ARCHIVE_OPTIONS
+from postgres_task_queue.core.broker import Broker
+from postgres_task_queue.core.queue import (
+    ArchiveOptions,
+    Queue,
+    DEFAULT_ARCHIVE_OPTIONS,
+)
 from postgres_task_queue.pgmq.fastapi import (
     ArchiveOptionsModel,
     QueueInfo,

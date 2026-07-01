@@ -3,7 +3,7 @@ from typing import Any, Generic, TypeVar, TypedDict
 
 from pydantic import BaseModel
 
-from ._broker import Broker
+from .broker import Broker
 
 InputType = TypeVar("InputType", bound=BaseModel)
 

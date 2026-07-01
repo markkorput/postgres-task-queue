@@ -4,8 +4,8 @@ from typing import Any, Callable, Generic, TypeVar, cast, Awaitable
 
 from pydantic import BaseModel
 
-from ._broker import Broker, Task
-from ._queue import PydanticQueue, Queue
+from .broker import Broker, Task
+from .queue import PydanticQueue, Queue
 
 logger = logging.getLogger(__name__)
 

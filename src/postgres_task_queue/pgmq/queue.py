@@ -3,7 +3,7 @@ from typing import TypeVar, overload
 from pydantic import BaseModel
 
 from postgres_task_queue.pgmq.broker import PgmqBroker
-from postgres_task_queue._queue import ArchiveOptions, Queue, PydanticQueue
+from postgres_task_queue.core.queue import ArchiveOptions, Queue, PydanticQueue
 
 InputType = TypeVar("InputType", bound=BaseModel)
 
